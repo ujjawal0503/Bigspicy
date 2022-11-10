@@ -38,4 +38,11 @@ To merge the files, follow the below steps in the BigSpicy directory: <br/>
     --save final.pb \
     --working_dir /tmp/bigspicy
 ```
+This will generate final.pb file.<br/>
+To specify the location of the final.pb file, go to bigspicy.py file and search for "def withoptions()" function. Change the "working_directory" variable to your desired path.<br/>
+## ACKNOWLEDGMENTS <br/>
+- Kunal Ghosh, Director, VSD Corp. Pvt. Ltd.<br/>
+- Madhav Rao, Professor, IIIT-Bangalore<br/>
+- Nanditha Rao, Professor, IIIT-Bangalore<br/>
+
 
