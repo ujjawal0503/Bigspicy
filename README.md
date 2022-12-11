@@ -75,6 +75,11 @@ To generate the spice file, follow the below steps in BigSpicy directory: <br/>
 ```
 The above steps will generate "spice.sp" file in the mentioned directory.<br/>
 
+## Future Works <br/>
+Presently we are working on performing tests on the generated spice file "spice.sp".<br/>
+We are trying to find the path delay for few paths using Xyce and compare the same with other available tools. <br/>
+We expect this to be a lot faster method for timing analysis than the other tools available now.<br/>
+
 
 ## ACKNOWLEDGMENTS <br/>
 - Kunal Ghosh, Director, VSD Corp. Pvt. Ltd.<br/>
