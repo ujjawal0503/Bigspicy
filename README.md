@@ -59,7 +59,7 @@ To generate the spice file, follow the below steps in BigSpicy directory: <br/>
     --save final.pb \
     --top iiitb_3bit_rc \
     --flatten_spice --dump_spice spice.sp
-    ```
+```
 The above steps will generate "spice.sp" file in the mentioned directory.<br/>
 
 
