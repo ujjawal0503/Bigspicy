@@ -7,9 +7,6 @@ https://github.com/ArshKedia/iiitb_3bit_rc <br/>
 ![200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d](https://user-images.githubusercontent.com/64605104/206892403-9238ee48-5b2f-43e7-86d4-9f81d6f67f62.png)
 <br/>
 ## PREREQUISITES : <br/>
-1. We need the pdk files in Xyce format.<br/>
-   To convert any PDK in Xyce format refer the following github repo.<br/>
-   https://github.com/LokeshMaji <br/>
    
 To install the python dependencies, follow the below steps: <br/>
 ```
@@ -28,6 +25,18 @@ To compile the protobufs, type the below command in terminal in the BigSpicy(clo
 git submodule update --init  
 protoc --proto_path vlsir vlsir/*.proto vlsir/*/*.proto --python_out=.
 protoc proto/*.proto --python_out=.
+```
+We also need tools like Xyce and XDM installed.<br/>
+To install the mentioned tools use the following links:<br/>
+XYCE: <br/>
+https://xyce.sandia.gov/documentation/BuildingGuide.html <br/>
+XDM: <br/>
+https://github.com/Xyce/XDM <br/>
+## Converting the PDKs: <br/>
+First step is to convert the PDKs into Xyce format.<br/>
+To convert the PDK's go to the directory where XDM is installed and type the following command:<br/>
+```
+xdm_bdl -s hspice "path to the pdk"/"file to be converted" -d lib
 ```
 ## Merging <br/>
 We merge the files into circuit protobuf(final.pb) which is used to generate the whole module spice models and to conduct the various tests using Xyce.<br/>
