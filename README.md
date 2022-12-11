@@ -30,16 +30,39 @@ We merge the files into circuit protobuf(final.pb) which is used to generate the
 To merge the files, follow the below steps in the BigSpicy directory: <br/>
 ```
 ./bigspicy.py \
-    --import \
-    --verilog iiitb_3bit_rc/iiitb_3bit_rc_synth.v \
-    --spef iiitb_3bit_rc/iiitb_3bit_rc.spef \
-    --spice_header lib/sky130_fd_sc_hd.spice \
-    --top iiitb_3bit_rc \
-    --save final.pb \
-    --working_dir /tmp/bigspicy
+   --import \
+   --spef example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.spef \
+   --spice lib/sky130_fd_sc_hd.spice \
+   --verilog example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.v \
+   --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
+   --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
+   --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
+   --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
+   --top iiitb_3bit_rc \
+   --save final.pb \
 ```
 This will generate final.pb file.<br/>
-To specify the location of the final.pb file, go to bigspicy.py file and search for "def withoptions()" function. Change the "working_directory" variable to your desired path.<br/>
+To specify the location of the final.pb file, go to bigspicy.py file and search for "def withoptions()" function. Change the "output_dir" variable to your desired path.<br/>
+
+## Generating whole-module spice file <br/>
+After generating the "final.pb" file, we now generate the spice file("spice.sp" in this case) for our design which can be further used to run tests.<br/>
+This step takes the pdks, and the design as input and gives the spice file as output.<br/>
+To generate the spice file, follow the below steps in BigSpicy directory: <br/>
+```
+./bigspicy.py --import \
+    --verilog example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.v \
+    --spice lib/sky130_fd_sc_hd.spice \
+    --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
+    --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
+    --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
+    --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
+    --save final.pb \
+    --top iiitb_3bit_rc \
+    --flatten_spice --dump_spice spice.sp
+    ```
+The above steps will generate "spice.sp" file in the mentioned directory.<br/>
+
+
 ## ACKNOWLEDGMENTS <br/>
 - Kunal Ghosh, Director, VSD Corp. Pvt. Ltd.<br/>
 - Madhav Rao, Professor, IIIT-Bangalore<br/>
