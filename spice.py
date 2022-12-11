@@ -106,6 +106,7 @@ class SpiceReader():
   class State(Enum):
     NONE = 0
     SUBCKT = 1
+    INCLUDE = 2
 
   def __init__(self, headers_only=False):
     self.port_order_by_module = {}
@@ -125,10 +126,24 @@ class SpiceReader():
     relative_to = os.path.dirname(source_file)
     return os.path.normpath(os.path.join(relative_to, path))
 
+  def ParseInclude(self, source_file_name, lines):
+    line = lines[0]
+    i = 1
+    while i < len(lines):
+      if line.startswith('+'):
+        line += line[1:]
+      i += 1
+
+    tokens = line.lower().split()
+    # Remove '.include' command which should be first token:
+    remaining_tokens = ' '.join(tokens[1:])
+    return SpiceReader.ResolvePathReference(source_file_name, remaining_tokens)
+
   def ParseSubckt(self, lines):
     if not lines:
       return
 
+    ignore_tokens = {'params:'}
     module_name = None
     ports = []
     params = []
@@ -138,7 +153,9 @@ class SpiceReader():
       nonlocal module_name
       # God bless you, regular expressions:
       tokens = SPLIT_KEEPING_PARAMS_RE.split(line)
-      tokens = list(filter(lambda x: x is not None and len(x) > 0, tokens))
+      tokens = list(filter(
+          lambda x: x is not None and len(x) > 0 and x.lower() not in ignore_tokens,
+          tokens))
       if not tokens:
         return
       if tokens[0].lower() == '.subckt':
@@ -238,11 +255,18 @@ class SpiceReader():
               self.subckts.append(subckt)
           continue
 
+        if state == SpiceReader.State.INCLUDE:
+          lines.append(line)
+          if line != '' and spice_command != '+':
+            new_file_name = self.ParseInclude(file_name, lines)
+            print(f'including spice file: {new_file_name}')
+            included_files.add(new_file_name)
+            state = SpiceReader.State.NONE
+          continue
+
         if spice_command == '.include':
-          remaining_tokens = ' '.join(tokens)
-          new_file_name = SpiceReader.ResolvePathReference(file_name, remaining_tokens)
-          print(f'including spice file: {new_file_name}')
-          included_files.add(new_file_name)
+          lines = [line]
+          state = SpiceReader.State.INCLUDE
 
         elif spice_command == '.subckt':
           lines = [line]
@@ -355,6 +379,9 @@ class SpiceWriter():
     else:
       module = self.design.external_modules[instance.module_name]
     connection_list = []
+    if not module.port_order:
+      print(f'warning: no port order for module {instance.module_name}, '
+            f'instance {instance.name} will not be connected')
     for port_name in module.port_order:
       signal = None
       if port_name in instance.connections:
@@ -375,7 +402,7 @@ class SpiceWriter():
     type_name = ''
     instance_name = self._MakeSpiceName(
         instance, additional_prefix=prefix) if generate_names else instance.name
-    skipped = False
+    skipped = None
 
     params = {}
     params.update(module.default_parameters)
@@ -385,12 +412,14 @@ class SpiceWriter():
     # Special checks for spice primitives.
     if module.name == circuit.RESISTOR.name:
       params['R'] = instance.parameters['resistance'].XyceFormat()
+      del params['resistance']
     elif module.name == circuit.CAPACITOR.name:
       capacitance = instance.parameters['capacitance']
       if capacitance == NumericalValue(0.0, None):
         # Do not write 0-value capacitances.
-        skipped = True
+        skipped = 'because C=0'
       params['C'] = capacitance.XyceFormat()
+      del params['capacitance']
     else:
       type_name = module.name 
 
@@ -398,7 +427,7 @@ class SpiceWriter():
     out = f'** {instance}\n'
     instantiation = f'{instance_name} {connections} {type_name} {params_out}'
     if skipped:
-      out += f'** {instantiation} [skipped]'
+      out += f'** {instantiation} [skipped {skipped}]'
     else:
       out += instantiation
     return out
@@ -425,7 +454,7 @@ class SpiceWriter():
     for child_instance in module.instances.values():
       # If it's a Module, it's internal, and we know the contents. Otherwise
       # it would be an ExternalModule.
-      if isinstance(child_instance.module, circuit.Module):
+      if type(child_instance.module) is circuit.Module:
         out += self.FlattenedInstance(child_instance, prefix=instance.name)
         continue
 
@@ -436,7 +465,7 @@ class SpiceWriter():
   def FormatInstances(self, instances, generate_names=False):
     out = ''
     for instance in instances:
-      if self.flatten and isinstance(instance.module, circuit.Module):
+      if self.flatten and type(instance.module) is circuit.Module:
         out += f'{self.FlattenedInstance(instance)}\n'
       else:
         out += f'{self.SpiceInstantiation(instance, generate_names=generate_names)}\n'

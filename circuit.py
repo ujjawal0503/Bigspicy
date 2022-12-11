@@ -250,6 +250,9 @@ class Connection:
     desc += ']'
     return desc
 
+  def IsDisconnected(self):
+    return self.signal is None and self.slice is None and self.concat is None
+
   def EnumerateWires(self):
     signal = self.GetConnectedSignal()
     indices = self.IndexOnSignal()
@@ -266,7 +269,7 @@ class Connection:
     raise NotImplementedError()
 
   def DirectionOfInstancePort(self):
-    if (isinstance(self.instance.module, ExternalModule) and
+    if (type(self.instance.module) is ExternalModule and
         self.port_name not in self.instance.module.ports):
       return ExternalModule.GuessDirectionOfExternalModulePort(self.port_name)
 
@@ -460,6 +463,35 @@ class ExternalModule:
     """ Guess the ports from all the instances. """
     pass
 
+  def GetOrCreateSignal(self, name, width=1):
+    if name in self.signals:
+      return self.signals[name]
+    # print(f'module {self.name} creating signal named "{name}"') ## Shut up already WE KNOW!
+    signal = Signal(name, width=width)
+    self.signals[name] = signal
+    return signal
+
+  def GetOrCreatePort(self, name, width=1, direction=Port.Direction.NONE):
+    if name in self.ports:
+      return self.ports[name]
+    print(f'module {self.name} creating port named "{name}" width={width} direction={direction}')
+    port = Port()
+    port.name = name
+    port.direction = direction
+
+    signal = self.GetOrCreateSignal(name, width=width)
+    signal.Connect(port)
+
+    # NOTE(growly): This is here because putting it in Signal is slightly more
+    # annoying (have to check if any index connects to the port before removing
+    # it in Disconnect).
+    signal.ports.add(port)
+
+    port.signal = signal
+    self.ports[name] = port
+    self.port_order.append(name)
+    return port
+
   def MakeReasonableGuessAtInputCapacitanceForPort(self, port_name, index=0):
     step = None
     sin = None
@@ -540,17 +572,12 @@ class ExternalModule:
       return Port.Direction.INPUT
 
 
-class Module:
+class Module(ExternalModule):
 
   def __init__(self):
-    self.name = None
-    self.ports = {}
-    self.port_order = []
-    self.signals = {}
+    ExternalModule.__init__(self)
+
     self.instances = {}
-    self.default_parameters = {}
-    self.is_sequential = False
-    self.is_passive = False
 
     # TODO(aryap): Need to know what ground and power nets are.
 
@@ -575,35 +602,6 @@ class Module:
   def __repr__(self):
     desc = f'[module {self.name}]'
     return desc
-
-  def GetOrCreateSignal(self, name, width=1):
-    if name in self.signals:
-      return self.signals[name]
-    ##print(f'module {self.name} creating signal named "{name}"') ## Shut up already WE KNOW!
-    signal = Signal(name, width=width)
-    self.signals[name] = signal
-    return signal
-
-  def GetOrCreatePort(self, name, width=1, direction=Port.Direction.NONE):
-    if name in self.ports:
-      return self.ports[name]
-    print(f'module {self.name} creating port named "{name}" width={width} direction={direction}')
-    port = Port()
-    port.name = name
-    port.direction = direction
-
-    signal = self.GetOrCreateSignal(name, width=width)
-    signal.Connect(port)
-
-    # NOTE(growly): This is here because putting it in Signal is slightly more
-    # annoying (have to check if any index connects to the port before removing
-    # it in Disconnect).
-    signal.ports.add(port)
-
-    port.signal = signal
-    self.ports[name] = port
-    self.port_order.append(name)
-    return port
 
   def Show(self):
     print(f'module: {self.name}')
@@ -955,7 +953,7 @@ class Module:
 
           # If we have data on the load capacitance at this boundary (i.e. the
           # input capacitance to a module), we include it as a simulated load.
-          if isinstance(instance.module, ExternalModule) and (
+          if type(instance.module) is ExternalModule and (
               connection.DirectionOfInstancePort() == Port.Direction.INPUT):
             region.AttachCapacitiveLoads(instance, connection, update_ports=True)
 
@@ -1132,7 +1130,7 @@ class DesignRegion:
     port_name = connection.port_name
     wires = EnumerateWiresInConnection(connection)
     module = instance.module
-    assert(isinstance(module, ExternalModule))
+    assert(type(module) is ExternalModule)
     for i, wire in enumerate(wires):
       input_capacitance = module.MakeReasonableGuessAtInputCapacitanceForPort(
           port_name, i)
@@ -1184,7 +1182,7 @@ class TimingPath:
 
 def DefinePrimitives():
   global CAPACITOR
-  CAPACITOR = Module()
+  CAPACITOR = ExternalModule()
   CAPACITOR.name = 'CAPACITOR'
   CAPACITOR.is_passive = True
   _ = CAPACITOR.GetOrCreatePort('A', width=1, direction=Port.Direction.INOUT)
@@ -1192,7 +1190,7 @@ def DefinePrimitives():
   CAPACITOR.default_parameters['capacitance'] = NumericalValue(0.0, None)
 
   global RESISTOR
-  RESISTOR = Module()
+  RESISTOR = ExternalModule()
   RESISTOR.name = 'RESISTOR'
   RESISTOR.is_passive = True
   _ = RESISTOR.GetOrCreatePort('A', width=1, direction=Port.Direction.INOUT)
@@ -1200,7 +1198,7 @@ def DefinePrimitives():
   RESISTOR.default_parameters['resistance'] = NumericalValue(0.0, None)
 
   global INDUCTOR
-  INDUCTOR = Module()
+  INDUCTOR = ExternalModule()
   INDUCTOR.name = 'INDUCTOR'
   INDUCTOR.is_passive = True
   _ = INDUCTOR.GetOrCreatePort('A', width=1, direction=Port.Direction.INOUT)

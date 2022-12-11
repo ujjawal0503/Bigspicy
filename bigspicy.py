@@ -123,8 +123,7 @@ def Main():
 def WithOptions(options: optparse.Values):
 
   # Make any output directories necessary.
-  output_directory = '/home/arsh/BigSpicy'
-  #output_directory = options.working_dir or '.'
+  output_directory = '/home/arsh/arsh/tmp/bigspicy'
   #if not os.path.exists(output_directory):
   #  os.makedirs(output_directory)
   output_directory = os.path.abspath(output_directory)
@@ -186,6 +185,7 @@ def WithOptions(options: optparse.Values):
   analyser = spice_analyser.SpiceAnalyser(design, output_directory, spice_libs)
 
   if options.generate_input_capacitance_tests:
+    analyser.AddInputCapacitanceTestsForKnownModules(used_by_module=top)
     analyser.AddInputCapacitanceTestsForExternalModules(used_by_module=top)
     analyser.WriteMetadata(options.test_manifest, options.test_analysis)
 
@@ -285,8 +285,10 @@ def WithOptions(options: optparse.Values):
 
   if options.dump_spice is not None:
     spice_writer = spice.SpiceWriter(design, flatten=options.flatten_spice)
-    spice_writer.WriteTop(
-        PrefixRelativeName(output_directory, options.dump_spice))
+    spice_file = PrefixRelativeName(output_directory, options.dump_spice)
+    spice_writer.WriteTop(spice_file)
+    print(f'wrote top module ({top.name}) spice module: {spice_file}')
+
 
 
 if __name__ == '__main__':
