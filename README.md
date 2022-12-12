@@ -10,7 +10,7 @@ https://github.com/ujjawal0503/iiitb_bc
    
 To install the python dependencies, follow the below steps: <br/>
 ```
-git clone https://github.com/google/bigspicy
+git clone https://github.com/ujjawal0503/Bigspicy
 cd BigSpicy/
 sudo apt-get update
 pip install -e ".[dev]"
@@ -44,14 +44,14 @@ To merge the files, follow the below steps in the BigSpicy directory: <br/>
 ```
 ./bigspicy.py \
    --import \
-   --spef example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.spef \
+   --spef example_inputs/iiitb_bc/iiitb_bc.spef \
    --spice lib/sky130_fd_sc_hd.spice \
-   --verilog example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.v \
+   --verilog example_inputs/iiitb_bc/iiitb_bc.v \
    --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
    --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
    --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
    --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
-   --top iiitb_3bit_rc \
+   --top iiitb_bc \
    --save final.pb \
 ```
 This will generate final.pb file.<br/>
@@ -63,14 +63,14 @@ This step takes the pdks, and the design as input and gives the spice file as ou
 To generate the spice file, follow the below steps in BigSpicy directory: <br/>
 ```
 ./bigspicy.py --import \
-    --verilog example_inputs/iiitb_3bit_rc/iiitb_3bit_rc.v \
+    --verilog example_inputs/iiitb_bc/iiitb_bc.v \
     --spice lib/sky130_fd_sc_hd.spice \
     --spice_header lib/sky130_fd_pr__pfet_01v8.pm3.spice \
     --spice_header lib/sky130_fd_pr__nfet_01v8.pm3.spice \
     --spice_header lib/sky130_ef_sc_hd__decap_12.spice \
     --spice_header lib/sky130_fd_pr__pfet_01v8_hvt.pm3.spice \
     --save final.pb \
-    --top iiitb_3bit_rc \
+    --top iiitb_bc \
     --flatten_spice --dump_spice spice.sp
 ```
 The above steps will generate "spice.sp" file in the mentioned directory.<br/>
