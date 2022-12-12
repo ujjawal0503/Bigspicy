@@ -1,7 +1,7 @@
 # BigSpicy - Merging SPEF, Verilog and Spice information into Circuit protobuf and generating the spice file <br/>
 This repo shows the steps for merging the SPEF, verilog and spice netlist into a circuit protobuf and generating the spice file of the design which can further be used to perform various tests and analysis.<br/>
-In this repo, I have used the design of 3-bit ring counter implemented using SKY130 PDKS. The RTL to GDS2 flow of the given design can be referred from the following github repo.<br/>
-https://github.com/ArshKedia/iiitb_3bit_rc <br/>
+In this repo, I have used the design of 4-bit bidirectional up-down counter implemented using SKY130 PDKS. The RTL to GDS2 flow of the given design can be referred from the following github repo.<br/>
+https://github.com/ujjawal0503/iiitb_bc
 
 ## FLOWCHART : <br/>
 ![200117467-c5c6d165-5011-4002-9b82-d756f3bbd48d](https://user-images.githubusercontent.com/64605104/206892403-9238ee48-5b2f-43e7-86d4-9f81d6f67f62.png)
@@ -10,7 +10,7 @@ https://github.com/ArshKedia/iiitb_3bit_rc <br/>
    
 To install the python dependencies, follow the below steps: <br/>
 ```
-git clone https://github.com/ArshKedia/BigSpicy
+git clone https://github.com/google/bigspicy
 cd BigSpicy/
 sudo apt-get update
 pip install -e ".[dev]"
