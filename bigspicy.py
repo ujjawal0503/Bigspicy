@@ -123,7 +123,7 @@ def Main():
 def WithOptions(options: optparse.Values):
 
   # Make any output directories necessary.
-  output_directory = '/home/arsh/arsh/tmp/bigspicy'
+  output_directory = '/home/ujjawal/Desktop/bigspicy/ujjawal/tmp/output'
   #if not os.path.exists(output_directory):
   #  os.makedirs(output_directory)
   output_directory = os.path.abspath(output_directory)
